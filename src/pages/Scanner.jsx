@@ -4,7 +4,7 @@ import { ZXING_URL } from '../config.js';
 import '../styles/scanner.css';
 
 /** Accepts the full barcode text (YC-0007|Name|Sector), "YC-0007", "0007" or "7". */
-export function parseId(text) {
+function parseId(text) {
   let t = String(text || '').split('|')[0].trim().toUpperCase();
   if (/^\d{1,6}$/.test(t)) t = 'YC-' + ('0000' + t).slice(-4);
   return /^YC-\d{4,6}$/.test(t) ? t : null;
@@ -32,28 +32,54 @@ function netMessage(err) {
   return 'No connection to the sheet (' + (m || 'network error') + ').';
 }
 
-function beep(ok) {
+// One shared AudioContext. Browsers only allow sound after a tap, so it is created/resumed on the first tap or key press;
+// reads from the camera happen without a tap and would otherwise be silent.
+const audio = { ctx: null };
+function unlockAudio() {
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
-    if (AC) {
-      const c = new AC();
-      const o = c.createOscillator();
-      const g = c.createGain();
-      o.frequency.value = ok ? 880 : 220;
-      g.gain.value = 0.15;
-      o.connect(g);
-      g.connect(c.destination);
-      o.start();
-      setTimeout(() => {
-        o.stop();
-        c.close();
-      }, ok ? 150 : 350);
-    }
+    if (!AC) return;
+    if (!audio.ctx) audio.ctx = new AC();
+    if (audio.ctx.state === 'suspended') audio.ctx.resume();
+  } catch {
+    /* ignore */
+  }
+}
+function tone(freq, start, dur, vol = 0.25) {
+  const c = audio.ctx;
+  if (!c) return;
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = 'sine';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, c.currentTime + start);
+  g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + start + dur);
+  o.connect(g);
+  g.connect(c.destination);
+  o.start(c.currentTime + start);
+  o.stop(c.currentTime + start + dur + 0.02);
+}
+const SOUNDS = {
+  read: () => tone(1500, 0, 0.09), // a code was read (before the sheet answers)
+  ok: () => {
+    tone(880, 0, 0.12);
+    tone(1320, 0.14, 0.2);
+  },
+  warn: () => {
+    tone(660, 0, 0.14);
+    tone(660, 0.22, 0.14);
+  },
+  bad: () => tone(200, 0, 0.4),
+};
+const VIBRATE = { read: 30, ok: 60, warn: [60, 50, 60], bad: [120, 60, 120] };
+function play(kind) {
+  try {
+    SOUNDS[kind]();
   } catch {
     /* ignore */
   }
   try {
-    if (navigator.vibrate) navigator.vibrate(ok ? 60 : [120, 60, 120]);
+    if (navigator.vibrate) navigator.vibrate(VIBRATE[kind]);
   } catch {
     /* ignore */
   }
@@ -70,6 +96,7 @@ export default function Scanner() {
   const [log, setLog] = useState([]);
   const [camOn, setCamOn] = useState(false);
   const [camMsg, setCamMsg] = useState('');
+  const [lastRead, setLastRead] = useState('');
 
   const pinRef = useRef('');
   const busyRef = useRef(false);
@@ -81,6 +108,16 @@ export default function Scanner() {
   const camOnRef = useRef(false);
   const checkinRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    document.addEventListener('pointerdown', unlock);
+    document.addEventListener('keydown', unlock);
+    return () => {
+      document.removeEventListener('pointerdown', unlock);
+      document.removeEventListener('keydown', unlock);
+    };
+  }, []);
 
   useEffect(() => {
     document.title = 'Youth Convene - Check-in';
@@ -146,17 +183,21 @@ export default function Scanner() {
 
   // ---- check-in
   async function checkin(text) {
-    const id = parseId(text);
-    if (!id) {
-      setResult({ cls: 'bad', big: 'Not a valid pass', name: '', meta: String(text || '').slice(0, 40) });
-      beep(false);
-      return;
-    }
+    const raw = String(text || '').trim();
+    const id = parseId(raw);
+    const key = id || raw;
     const now = Date.now();
     // ignore the same code repeating while the camera is still pointed at it
-    if (busyRef.current || (id === lastRef.current.id && now - lastRef.current.at < 4000)) return;
+    if (busyRef.current || (key === lastRef.current.id && now - lastRef.current.at < (id ? 4000 : 2500))) return;
+    lastRef.current = { id: key, at: now };
+    setLastRead(raw.slice(0, 60));
+    if (!id) {
+      setResult({ cls: 'bad', big: 'Not a valid pass', name: '', meta: raw.slice(0, 40) });
+      play('bad');
+      return;
+    }
     busyRef.current = true;
-    lastRef.current = { id, at: now };
+    play('read');
     setResult({ cls: 'busy', big: 'Checking ' + id + '...', name: '', meta: '' });
     const addLog = (cls, t) =>
       setLog((l) =>
@@ -168,7 +209,7 @@ export default function Scanner() {
       applyCounts(j);
       if (j && j.ok && j.status === 'checked_in') {
         setResult({ cls: 'ok', big: 'Checked in', name: j.name, meta: j.sector + '  |  ' + j.id });
-        beep(true);
+        play('ok');
         addLog('ok', j.name + ' (' + j.id + ')');
       } else if (j && j.ok && j.status === 'already') {
         setResult({
@@ -177,24 +218,24 @@ export default function Scanner() {
           name: j.name,
           meta: j.sector + '  |  ' + j.id + '  |  first scan ' + j.at,
         });
-        beep(false);
+        play('warn');
         addLog('warn', j.name + ' (' + j.id + ') again');
       } else if (j && j.error === 'not_found') {
         setResult({ cls: 'bad', big: 'ID not found', name: id, meta: 'This pass is not in the registration sheet.' });
-        beep(false);
+        play('bad');
         addLog('bad', id + ' not found');
       } else if (j && (j.error === 'bad_pin' || j.error === 'locked' || j.error === 'pin_not_set')) {
         setResult({ cls: 'bad', big: 'Locked', name: pinMessage(j.error), meta: '' });
-        beep(false);
+        play('bad');
       } else {
         setResult({ cls: 'bad', big: 'Could not check in', name: (j && j.error) || 'no reply', meta: '' });
-        beep(false);
+        play('bad');
       }
     } catch (err) {
       console.error(err);
       lastRef.current.id = '';
       setResult({ cls: 'bad', big: 'No connection', name: netMessage(err), meta: 'Scan again when the connection is back.' });
-      beep(false);
+      play('bad');
     } finally {
       busyRef.current = false;
     }
@@ -203,6 +244,7 @@ export default function Scanner() {
 
   function onSubmit(e) {
     e.preventDefault();
+    unlockAudio();
     const v = code;
     setCode('');
     lastRef.current = { id: '', at: 0 };
@@ -249,7 +291,7 @@ export default function Scanner() {
           hints.set(ZX.DecodeHintType.TRY_HARDER, true);
           const reader = new ZX.BrowserMultiFormatReader(hints);
           zxRef.current = reader;
-          reader.decodeFromConstraints({ video: { facingMode: { ideal: 'environment' } } }, videoRef.current, (result) => {
+          reader.decodeFromConstraints({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } }, videoRef.current, (result) => {
             if (result) checkinRef.current(result.getText());
           });
           resolve();
@@ -270,6 +312,7 @@ export default function Scanner() {
   }
 
   async function startCam() {
+    unlockAudio();
     if (camOnRef.current) {
       stopCam();
       return;
@@ -285,8 +328,16 @@ export default function Scanner() {
     setCamOn(true);
     try {
       if ('BarcodeDetector' in window) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
         streamRef.current = stream;
+        try {
+          await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+        } catch {
+          /* not supported on this phone */
+        }
         const v = videoRef.current;
         v.srcObject = stream;
         await v.play();
@@ -377,6 +428,11 @@ export default function Scanner() {
             <div className="msg" role="alert">
               {camMsg}
             </div>
+            {camOn && !camMsg && (
+              <div className="hint">
+                Camera on. Hold the barcode inside the yellow box. {lastRead ? 'Last read: ' + lastRead : 'Nothing read yet.'}
+              </div>
+            )}
 
             <form onSubmit={onSubmit} autoComplete="off">
               <div className="row">
