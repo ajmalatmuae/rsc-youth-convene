@@ -1,5 +1,5 @@
 // Name suggestions (names only) from the organisers' list. Typing a name that is not here is still allowed.
-export const SECTORS = ['Madinat Zayed', 'Muroor', 'Al Wahda North', 'Al Wahda South', 'Khalidiya', 'Khalifa City', 'Nadisiya'];
+export const SECTORS = ['Madina Zayed', 'Muroor', 'Al Wahda North', 'Al Wahda South', 'Khalidiya', 'Khalifa City', 'Nadisiya'];
 
 // Designations for the label under the photo. They are shown on the pass only and are NOT saved in the sheet.
 export const DESIGNATIONS = [
@@ -89,7 +89,7 @@ export const NAMES = {
     "Ajmal Ahmed",
     "Muhammad Niyas N K"
   ],
-  "Madinat Zayed": [
+  "Madina Zayed": [
     "Muflih TK",
     "MUFEED P MAJEED",
     "HAFIZ UNAIS SAQAFI",
