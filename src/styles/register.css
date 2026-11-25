@@ -1,41 +1,133 @@
 /* Councillor Pass page. Every rule is scoped to .reg-root so it cannot affect the scanner page. */
-
 .reg-root{min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;background:radial-gradient(circle at 85% 0,#c40000 0,transparent 45%),linear-gradient(160deg,#2a0000,#0a0000);display:flex;flex-direction:column;align-items:center;padding:calc(24px + env(safe-area-inset-top,0px)) 12px calc(40px + env(safe-area-inset-bottom,0px))}
-.reg-root .head{text-align:center;margin:0 0 12px}.reg-root .head .yc{height:90px;max-width:80%;object-fit:contain}.reg-root .sub{opacity:.85;margin:0 0 16px;text-align:center;font-size:.95rem}
+.reg-root .head{width:100%;max-width:760px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:0 0 12px}
+.reg-root .head .yc{height:90px;max-width:100%;object-fit:contain;justify-self:center}
+.reg-root .plate{display:inline-flex;background:#fff;border-radius:12px;padding:6px 10px}
+.reg-root .plate-l{justify-self:start}
+.reg-root .plate-r{justify-self:end}
+.reg-root .head .plate img{height:56px;width:auto;display:block}
+.reg-root .sub{opacity:.85;margin:0 0 16px;text-align:center;font-size:.95rem}
 .reg-root .ticket{width:100%;max-width:760px;background:#fff;color:#1a0000;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:in .7s ease both}
 @keyframes in{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 .reg-root .bar-top{margin-bottom:14px;display:flex;justify-content:center;font-size:.7rem;font-weight:800;letter-spacing:2px;color:#fff;background:#e10600;padding:10px 18px}
-
-
-
-.reg-root .main{display:flex;flex-wrap:wrap;gap:18px;padding:10px 22px 18px}
-.reg-root .col{flex:1 1 300px;display:flex;flex-direction:column;gap:14px}
-.reg-root .route{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.reg-root .main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"photo route" "photo r4" "photo r2" "photo r3";gap:10px 18px;padding:10px 22px 18px;align-items:start;--pw:160px}
+.reg-root .route{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;align-items:start}
 .reg-root .route b{font-size:1.5rem;line-height:1.1;display:block}
 .reg-root .route small,.reg-root .f small{display:block;font-size:.62rem;letter-spacing:1.3px;opacity:.55;margin-bottom:2px}
 .reg-root .plane{font-size:1.5rem;color:#e10600;animation:fly 2.4s ease-in-out infinite}
 @keyframes fly{50%{transform:translateX(8px)}}
-.reg-root .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .reg-root .f span{font-weight:700;font-size:1rem;overflow-wrap:anywhere}
-.reg-root .tear{position:relative;border-top:2px dashed #bbb;margin:0}.reg-root .tear::before,.reg-root .tear::after{content:"";position:absolute;top:-12px;width:24px;height:24px;border-radius:50%;background:#200000}.reg-root .tear::before{left:-12px}.reg-root .tear::after{right:-12px}
-.reg-root .bar{height:52px;margin:14px 22px 10px;border-radius:4px;background:#fff}.reg-root .bar svg{display:block;width:100%;height:100%}
-.reg-root .foot{display:flex;align-items:center;justify-content:space-between;padding:0 22px 16px;font-size:.68rem;letter-spacing:2px}
-.reg-root .foot{gap:10px}.reg-root .rsc-group{display:flex;align-items:center;gap:6px}.reg-root .city{font-size:.8rem;font-weight:700;letter-spacing:1px;color:#1a0000}.reg-root .foot img{height:32px;object-fit:contain}
+.reg-root .tear{position:relative;border-top:2px dashed #bbb;margin:0}
+.reg-root .tear::before,.reg-root .tear::after{content:"";position:absolute;top:-12px;width:24px;height:24px;border-radius:50%;background:#200000}
+.reg-root .tear::before{left:-12px}
+.reg-root .tear::after{right:-12px}
+.reg-root .bar{height:52px;margin:14px 22px 10px;border-radius:4px;background:#fff}
+.reg-root .bar svg{display:block;width:100%;height:100%}
+.reg-root .foot{display:flex;align-items:flex-end;justify-content:space-between;padding:16px 22px 16px;font-size:.68rem;letter-spacing:2px;gap:16px;flex-wrap:nowrap}
+.reg-root .rsc-group{display:flex;align-items:center;gap:6px}
+.reg-root .city{font-size:.8rem;font-weight:700;letter-spacing:1px;color:#1a0000}
+.reg-root .rsc-group img{height:20px;object-fit:contain}
 .reg-root .form{width:100%;max-width:760px;margin-top:20px;display:grid;gap:10px;grid-template-columns:1fr 1fr}
 .reg-root input{width:100%;padding:13px 14px;border-radius:12px;border:2px solid #7a0000;background:#2b0505;color:#fff;font-size:1rem}
 .reg-root input::placeholder{color:#c99}
 .reg-root .btn{display:block;text-align:center;text-decoration:none;font-weight:800;padding:14px;border-radius:12px;font-size:1rem;color:#1a0000;background:#ffe500}
 .reg-root .alt{background:transparent;color:#fff;border:2px solid #fff5}
 .reg-root .wide{grid-column:1/-1}
-.reg-root .foot{justify-content:space-between}.reg-root .slot{min-height:20px}
-.reg-root .pax{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}.reg-root .pax-info{display:flex;flex-direction:column;gap:14px;min-width:0}
-.reg-root .photo{flex:0 0 auto;position:relative;width:92px;height:115px;border-radius:8px;border:2px dashed #bbb;background:#f4eded;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#b88;font-size:.6rem;letter-spacing:1px;text-align:center}
-.reg-root .photo.has{border:2px solid #e10600;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.reg-root .photo.has:active{cursor:grabbing}.reg-root .photo img{position:absolute;left:0;top:0;max-width:none;width:auto;height:auto;transform-origin:0 0;display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}.reg-root .zrow{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:.85rem;color:#fcc}.reg-root .zrow input{flex:1;padding:0;border:0;background:none;accent-color:#ffe500}.reg-root .zhint{grid-column:1/-1;font-size:.8rem;color:#c99;margin-top:-4px}
+.reg-root .photo{flex:0 0 auto;position:relative;width:var(--pw);height:auto;border-radius:8px;border:2px dashed #000;background:#f4eded;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#b88;font-size:.6rem;letter-spacing:1px;text-align:center;grid-area:photo;box-sizing:content-box;aspect-ratio:88/111}
+.reg-root .photo.has{border:2px solid #000;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.reg-root .photo.has:active{cursor:grabbing}
+.reg-root .photo img{position:absolute;left:0;top:0;max-width:none;width:auto;height:auto;transform-origin:0 0;display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}
+.reg-root .zrow{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:.85rem;color:#fcc}
+.reg-root .zrow input{flex:1;padding:0;border:0;background:none;accent-color:#ffe500}
+.reg-root .zhint{grid-column:1/-1;font-size:.8rem;color:#c99;margin-top:-4px}
 .reg-root select{width:100%;padding:13px 14px;border-radius:12px;border:2px solid #7a0000;background:#2b0505;color:#fff;font-size:1rem;appearance:auto}
-.reg-root .pbtn{cursor:pointer;font:inherit}.reg-root .pbtns{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}.reg-root .pbtn{position:relative;overflow:hidden}.reg-root .pbtns input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}.reg-root .pmsg{grid-column:1/-1;color:#ffb3b3;font-size:.85rem}
+.reg-root .pbtn{cursor:pointer;font:inherit;position:relative;overflow:hidden}
+.reg-root .pbtns{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reg-root .pbtns input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
+.reg-root .pmsg{grid-column:1/-1;color:#ffb3b3;font-size:.85rem}
 .reg-root .rm{grid-column:1/-1;background:none;border:0;color:#fcc;text-decoration:underline;cursor:pointer;font-size:.85rem;display:block;text-align:left;padding:0}
-.reg-root .ib{display:flex;align-items:center;justify-content:center;padding:11px}.reg-root .ib svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.reg-root .ib:focus-visible,.reg-root .ib:focus-within{outline:2px solid #ffe500;outline-offset:2px}
-.reg-root .dl{display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;cursor:pointer}.reg-root .dl svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.reg-root .dl:disabled{opacity:.4;cursor:not-allowed}.reg-root .dl:not(:disabled){border-color:#fff}
-.reg-root .rg{border:2px solid #ffe500}.reg-root .rstat{grid-column:1/-1;background:#2b0505;border:2px solid #ffe500;border-radius:12px;padding:12px 14px;text-align:center;font-weight:700;color:#ffe500}.reg-root .rstat b{letter-spacing:2px;color:#fff}.reg-root input:disabled,.reg-root select:disabled{opacity:.6}.reg-root .idcap{text-align:center;font-size:.72rem;font-weight:700;letter-spacing:2px;color:#1a0000;opacity:.7;margin:-4px 0 8px}
-@media (max-width:600px){.reg-root .form{grid-template-columns:1fr}.reg-root .head .yc{height:72px}}
-
+.reg-root .ib{display:flex;align-items:center;justify-content:center;padding:11px}
+.reg-root .ib svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.reg-root .ib:focus-visible,.reg-root .ib:focus-within{outline:2px solid #ffe500;outline-offset:2px}
+.reg-root .dl{display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;cursor:pointer}
+.reg-root .dl svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.reg-root .dl:disabled{opacity:.4;cursor:not-allowed}
+.reg-root .dl:not(:disabled){border-color:#fff}
+.reg-root .rg{border:2px solid #ffe500}
+.reg-root .rstat{grid-column:1/-1;background:#2b0505;border:2px solid #ffe500;border-radius:12px;padding:12px 14px;text-align:center;font-weight:700;color:#ffe500}
+.reg-root .rstat b{letter-spacing:2px;color:#fff}
+.reg-root input:disabled,.reg-root select:disabled{opacity:.6}
+.reg-root .idcap{text-align:center;font-size:.72rem;font-weight:700;letter-spacing:2px;color:#1a0000;opacity:.7;margin:-4px 0 8px}
+@media (max-width:600px){
+  .reg-root .form{grid-template-columns:1fr}
+  .reg-root .head .yc{height:72px}
+}
+/* Councillor Pass body: photo top left; to its right FROM/TO (level with the top of the photo),
+   then DATE/DAY, BOARDING/GATE and NAME/FLIGHT, each pair on one line. */
+.reg-root .main .route{grid-area:route;min-width:0}
+.reg-root .r2{grid-area:r2}
+.reg-root .r3{grid-area:r3}
+.reg-root .r4{grid-area:r4}
+.reg-root .pair{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;min-width:0}
+.reg-root .r-from{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+.reg-root .r-to{min-width:0}
+.reg-root .pair .f{min-width:0}
+@media (max-width:600px){
+  .reg-root .main{gap:10px 14px}
+  .reg-root .route b{font-size:1.15rem}
+}
+@media (max-width:420px){
+  .reg-root .main{padding:10px 18px 16px;gap:8px 12px}
+  .reg-root .route b{font-size:.95rem;overflow-wrap:normal}
+  .reg-root .r-to b{white-space:nowrap}
+  .reg-root .plane{font-size:1rem}
+  .reg-root .pair,.reg-root .main .route{gap:8px;grid-template-columns:1.2fr 1fr}
+  .reg-root .f span{font-size:.88rem;overflow-wrap:break-word}
+}
+@media (max-width:340px){
+  .reg-root .main{padding:10px 14px 14px;gap:8px 10px}
+  .reg-root .f span{font-size:.82rem}
+  .reg-root .route b{font-size:.88rem}
+  .reg-root .pair,.reg-root .main .route{gap:6px;grid-template-columns:1.25fr 1fr}
+}
+@media (max-width:600px){
+  .reg-root .head .plate img{height:42px}
+}
+@media (max-width:420px){
+  .reg-root .head .plate img{height:30px}
+  .reg-root .plate{padding:4px 6px;border-radius:10px}
+}
+/* footer row: barcode on the left, RSC logo on the right */
+.reg-root .bcwrap{flex:0 1 44%;min-width:120px;max-width:340px}
+.reg-root .bcwrap .bar{margin:0;height:52px}
+.reg-root .bcwrap .idcap{text-align:left;margin:6px 0 0}
+.reg-root .r-from .plane{flex:1 0 18px;text-align:center}
+@media (max-width:420px){
+  .reg-root .city{font-size:.7rem}
+  .reg-root .foot{padding:14px 18px 14px;gap:12px}
+}
+/* NAME is a little larger than the other values */
+.reg-root .f-name span{font-size:1.2rem}
+@media (max-width:420px){
+  .reg-root .f-name span{font-size:1rem}
+}
+@media (max-width:340px){
+  .reg-root .f-name span{font-size:.92rem}
+}
+/* bigger photo frame, filling the height of the four rows beside it; smaller on small screens */
+@media (max-width:600px){
+  .reg-root .main{--pw:112px}
+}
+@media (max-width:420px){
+  .reg-root .main{--pw:100px}
+}
+@media (max-width:360px){
+  .reg-root .main{--pw:84px;padding:10px 12px 14px;gap:8px 10px}
+  .reg-root .pair,.reg-root .main .route{gap:6px;grid-template-columns:1.1fr 1fr}
+  .reg-root .f span{font-size:.8rem}
+  .reg-root .f-name span{font-size:.92rem}
+  .reg-root .route b{font-size:.9rem}
+}
+@media (max-width:340px){
+  .reg-root .main{--pw:76px}
+}
