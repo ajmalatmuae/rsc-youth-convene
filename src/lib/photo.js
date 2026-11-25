@@ -1,9 +1,10 @@
-// Photo frame maths (pure functions). The frame is 88 x 111 CSS px inside its 2px border.
+// Photo frame maths. FRAME is the measured inner size of the photo frame in CSS px (88:111 ratio).
+// The page updates it whenever the frame is resized, because the frame gets smaller on small screens.
 export const FRAME = { w: 88, h: 111 };
 
 export const minScale = (d) => Math.max(FRAME.w / d.w, FRAME.h / d.h);
 
-export function clampView(v, d) {
+function clampView(v, d) {
   const x = Math.min(0, Math.max(FRAME.w - d.w * v.s, v.x));
   const y = Math.min(0, Math.max(FRAME.h - d.h * v.s, v.y));
   return { s: v.s, x, y };
