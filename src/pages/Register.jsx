@@ -3,7 +3,7 @@ import ycLogo from '../assets/youth-convene.png';
 import rscLogo from '../assets/rsc.png';
 import samasthaLogo from '../assets/samastha-centenary.png';
 import beMoreLogo from '../assets/be-more.png';
-import { NAMES, SECTORS } from '../lib/names.js';
+import { DESIGNATIONS, NAMES, SECTORS } from '../lib/names.js';
 import { normMobile } from '../lib/mobile.js';
 import { code128B, barcodePayload } from '../lib/code128.js';
 import { FRAME, initialView, minScale, panBy, zoomAt, prepareImage } from '../lib/photo.js';
@@ -19,7 +19,7 @@ const CAL_URL =
   encodeURIComponent('Hamdan, Abu Dhabi') +
   '&details=' +
   encodeURIComponent('RSC Abu Dhabi City');
-const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=Hamdan+Abu+Dhabi';
+const MAP_URL = 'https://maps.app.goo.gl/MhReuex4oe3BqPLJ7';
 
 function Icon({ children }) {
   return (
@@ -49,6 +49,8 @@ function registerError(code) {
 export default function Register() {
   const [name, setName] = useState('');
   const [sector, setSector] = useState('');
+  const [designation, setDesignation] = useState(''); // label under the photo only, never sent to the sheet
+  const [dlAttn, setDlAttn] = useState(false); // highlight the Download button after registering
   const [mobile, setMobile] = useState('');
   const [photo, setPhoto] = useState(null); // { src, w, h }
   const [view, setView] = useState(null); // { s, x, y }
@@ -58,6 +60,7 @@ export default function Register() {
   const [mobMsg, setMobMsg] = useState('');
 
   const frameRef = useRef(null);
+  const dlRef = useRef(null);
   const photoRef = useRef(null);
   const ptrs = useRef(new Map());
   const pinch = useRef({ d: 0, m: null });
@@ -205,6 +208,18 @@ export default function Register() {
     setMsg('');
   }
 
+  // After registering, bring the Download button into view and focus it.
+  useEffect(() => {
+    if (!regId || !dlAttn) return undefined;
+    const t = setTimeout(() => {
+      const el = dlRef.current;
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [regId, dlAttn]);
+
   // ---- register, then download
   async function register() {
     if (!ready || busy || regId) return;
@@ -212,7 +227,10 @@ export default function Register() {
     setBusy(true);
     try {
       const j = await post({ key: REG_KEY, name: name.trim(), sector, mobile: mobileNorm });
-      if (j && j.ok && j.id) setRegId(String(j.id));
+      if (j && j.ok && j.id) {
+        setRegId(String(j.id));
+        setDlAttn(true);
+      }
       else setMsg(registerError(j && j.error));
     } catch (err) {
       console.error(err);
@@ -224,8 +242,9 @@ export default function Register() {
 
   async function download() {
     if (!regId || !photo || !view) return;
+    setDlAttn(false);
     try {
-      const cv = await drawPass({ name: name.trim(), sector, regId, payload, photo, view });
+      const cv = await drawPass({ name: name.trim(), sector, designation, regId, payload, photo, view });
       const blob = await new Promise((resolve) => cv.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('blob');
       const url = URL.createObjectURL(blob);
@@ -272,29 +291,32 @@ export default function Register() {
           <span>COUNCILLOR PASS</span>
         </div>
         <div className="main">
-          <div
-            ref={frameRef}
-            className={'photo' + (photo ? ' has' : '')}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            data-testid="photo-frame"
-          >
-            {photo && view ? (
-              <img
-                src={photo.src}
-                alt="Your photo"
-                draggable={false}
-                style={{
-                  width: photo.w,
-                  height: photo.h,
-                  transform: `translate(${view.x}px,${view.y}px) scale(${view.s})`,
-                }}
-              />
-            ) : (
-              'PHOTO'
-            )}
+          <div className="photo-wrap">
+            <div
+              ref={frameRef}
+              className={'photo' + (photo ? ' has' : '') + (designation ? ' tagged' : '')}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              data-testid="photo-frame"
+            >
+              {photo && view ? (
+                <img
+                  src={photo.src}
+                  alt="Your photo"
+                  draggable={false}
+                  style={{
+                    width: photo.w,
+                    height: photo.h,
+                    transform: `translate(${view.x}px,${view.y}px) scale(${view.s})`,
+                  }}
+                />
+              ) : (
+                'PHOTO'
+              )}
+            </div>
+            {designation && <div className="photo-label">{designation}</div>}
           </div>
           <div className="route">
             <div className="r-from">
@@ -385,6 +407,14 @@ export default function Register() {
             <option key={o.l + o.n} value={o.n} label={o.l || undefined} />
           ))}
         </datalist>
+        <select value={designation} onChange={(e) => setDesignation(e.target.value)} aria-label="Designation">
+          <option value="">Select designation</option>
+          {DESIGNATIONS.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
         <select value={sector} onChange={(e) => setSector(e.target.value)} disabled={locked} aria-label="Your sector">
           <option value="">Select your sector</option>
           {SECTORS.map((s) => (
@@ -394,7 +424,6 @@ export default function Register() {
           ))}
         </select>
         <input
-          className="wide"
           type="tel"
           inputMode="tel"
           autoComplete="tel"
@@ -479,12 +508,19 @@ export default function Register() {
               className="rm"
               onClick={() => {
                 setRegId(null);
+                setDlAttn(false);
                 setMsg('');
               }}
             >
               Edit details (a new ID will be issued)
             </button>
-            <button type="button" className="btn alt wide dl" disabled={!photo} onClick={download}>
+            <button
+              type="button"
+              ref={dlRef}
+              className={'btn alt wide dl' + (dlAttn ? ' attn' : '')}
+              disabled={!photo}
+              onClick={download}
+            >
               <Icon>
                 <path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14" />
               </Icon>
