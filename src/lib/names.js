@@ -1,6 +1,19 @@
 // Name suggestions (names only) from the organisers' list. Typing a name that is not here is still allowed.
 export const SECTORS = ['Madinat Zayed', 'Muroor', 'Al Wahda North', 'Al Wahda South', 'Khalidiya', 'Khalifa City', 'Nadisiya'];
 
+// Designations for the label under the photo. They are shown on the pass only and are NOT saved in the sheet.
+export const DESIGNATIONS = [
+  'Zone EB',
+  'Chairman',
+  'General Secretary',
+  'Wisdom Sec',
+  'Kalalayam Sec',
+  'Students Sec',
+  'Organisation Sec',
+  'Media Sec',
+  'Finance Sec',
+];
+
 export const NAMES = {
   "Al Wahda North": [
     "Abdul Variz AP",

@@ -26,6 +26,21 @@ function rr(c, x, y, w, h, r) {
   c.closePath();
 }
 
+// rounded rectangle with a separate radius for each corner
+function rrx(c, x, y, w, h, tl, tr, br, bl) {
+  c.beginPath();
+  c.moveTo(x + tl, y);
+  c.lineTo(x + w - tr, y);
+  c.arcTo(x + w, y, x + w, y + tr, tr);
+  c.lineTo(x + w, y + h - br);
+  c.arcTo(x + w, y + h, x + w - br, y + h, br);
+  c.lineTo(x + bl, y + h);
+  c.arcTo(x, y + h, x, y + h - bl, bl);
+  c.lineTo(x, y + tl);
+  c.arcTo(x, y, x + tl, y, tl);
+  c.closePath();
+}
+
 function spacedWidth(c, t, sp) {
   let w = 0;
   for (let i = 0; i < t.length; i++) w += c.measureText(t.charAt(i)).width + sp;
@@ -94,8 +109,9 @@ function layoutName(c, val, w) {
  *   photo top left; to its right FROM/TO (level with the top of the photo), then DATE/DAY, BOARDING/GATE and NAME/FLIGHT,
  *   each pair on one line. A two-line name makes the card a little taller.
  * photo: { src, w, h }   view: { s, x, y } (the zoom/position chosen in the photo frame)
+ * designation: optional label drawn under the photo (not saved anywhere)
  */
-export async function drawPass({ name, sector, regId, payload, photo, view }) {
+export async function drawPass({ name, sector, designation, regId, payload, photo, view }) {
   const [yc, rsc, pimg, sam, bm] = await Promise.all([
     loadImage(ycUrl),
     loadImage(rscUrl),
@@ -109,7 +125,9 @@ export async function drawPass({ name, sector, regId, payload, photo, view }) {
   const probe = document.createElement('canvas').getContext('2d');
   const nm = layoutName(probe, name, NAME_W);
   const extra = nm.lines.length > 1 ? Math.round(nm.z * 1.15) : 0;
-  const T = 380 + extra; // y of the tear line
+  const pw = 200, ph = Math.round((pw * FRAME.h) / FRAME.w), px = 40, py = 82; // photo, top left
+  const labelH = designation ? 40 : 0;
+  const T = Math.max(380 + extra, py + ph + labelH + 26); // y of the tear line
   const cx = 60, cy = 170, cw = 1080, ch = T + 180;
   const W = 1200, H = ch + 220;
 
@@ -167,17 +185,27 @@ export async function drawPass({ name, sector, regId, payload, photo, view }) {
   d.font = '800 20px ' + FONT;
   spaced(d, 'COUNCILLOR PASS', cw / 2, 35, 6, 'center');
 
-  // photo (cropped exactly as framed on the page), top left
-  const pw = 200, ph = Math.round((pw * FRAME.h) / FRAME.w), px = 40, py = 82;
+  // photo (cropped exactly as framed on the page), top left; square bottom corners when a label is attached
+  const rb = designation ? 0 : 10;
   d.save();
-  rr(d, px, py, pw, ph, 10);
+  rrx(d, px, py, pw, ph, 10, 10, rb, rb);
   d.clip();
   d.drawImage(pimg, -view.x / view.s, -view.y / view.s, FRAME.w / view.s, FRAME.h / view.s, px, py, pw, ph);
   d.restore();
   d.lineWidth = 3;
   d.strokeStyle = '#000';
-  rr(d, px, py, pw, ph, 10);
+  rrx(d, px, py, pw, ph, 10, 10, rb, rb);
   d.stroke();
+  if (designation) {
+    const text = designation.toUpperCase();
+    d.fillStyle = '#000';
+    rrx(d, px - 1.5, py + ph - 1.5, pw + 3, labelH + 1.5, 0, 0, 10, 10);
+    d.fill();
+    d.fillStyle = '#fff';
+    fit(d, text, pw - 16, 22, 12);
+    d.textAlign = 'center';
+    d.fillText(text, px + pw / 2, py + ph + labelH / 2 + 7);
+  }
 
   // to the right of the photo: FROM/TO (top level with the photo), then three rows of two columns
   const X1 = 270, X2 = 620;
