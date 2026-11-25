@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ycLogo from '../assets/youth-convene.png';
 import rscLogo from '../assets/rsc.png';
+import samasthaLogo from '../assets/samastha-centenary.png';
+import beMoreLogo from '../assets/be-more.png';
 import { NAMES, SECTORS } from '../lib/names.js';
 import { normMobile } from '../lib/mobile.js';
 import { code128B, barcodePayload } from '../lib/code128.js';
@@ -165,6 +167,23 @@ export default function Register() {
     ptrs.current.delete(e.pointerId);
     pinch.current = { d: 0, m: null };
   }
+  // The frame has different sizes on different screens: keep FRAME in step and rescale the position/zoom with it.
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(() => {
+      const nw = el.clientWidth;
+      const nh = el.clientHeight;
+      if (!nw || !nh || (nw === FRAME.w && nh === FRAME.h)) return;
+      const r = nw / FRAME.w;
+      FRAME.w = nw;
+      FRAME.h = nh;
+      setView((v) => (v ? { s: v.s * r, x: v.x * r, y: v.y * r } : v));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // React attaches wheel listeners as passive, so this one is added by hand to be able to stop page scrolling.
   useEffect(() => {
     const el = frameRef.current;
@@ -238,7 +257,13 @@ export default function Register() {
   return (
     <div className="reg-root">
       <div className="head">
+        <span className="plate plate-l">
+          <img src={samasthaLogo} alt="Samastha Centenary" />
+        </span>
         <img className="yc" src={ycLogo} alt="Youth Convene" />
+        <span className="plate plate-r">
+          <img src={beMoreLogo} alt="Be In, Be More" />
+        </span>
       </div>
       <p className="sub">You're cleared for boarding. Your seat is reserved.</p>
 
@@ -247,99 +272,98 @@ export default function Register() {
           <span>COUNCILLOR PASS</span>
         </div>
         <div className="main">
-          <div className="col">
-            <div className="route">
+          <div
+            ref={frameRef}
+            className={'photo' + (photo ? ' has' : '')}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            data-testid="photo-frame"
+          >
+            {photo && view ? (
+              <img
+                src={photo.src}
+                alt="Your photo"
+                draggable={false}
+                style={{
+                  width: photo.w,
+                  height: photo.h,
+                  transform: `translate(${view.x}px,${view.y}px) scale(${view.s})`,
+                }}
+              />
+            ) : (
+              'PHOTO'
+            )}
+          </div>
+          <div className="route">
+            <div className="r-from">
               <div>
                 <small>FROM</small>
                 <b>{(sector || 'YOUR SECTOR').toUpperCase()}</b>
               </div>
               <div className="plane">&#9992;</div>
-              <div style={{ textAlign: 'right' }}>
-                <small>TO</small>
-                <b>HAMDAN</b>
-              </div>
             </div>
-            <div className="pax">
-              <div className="pax-info">
-                <div className="f">
-                  <small>PASSENGER</small>
-                  <span>{name.trim() || 'Sector Council Member'}</span>
-                </div>
-                <div className="f">
-                  <small>FLIGHT</small>
-                  <span>Abu Dhabi Zone</span>
-                </div>
-              </div>
-              <div
-                ref={frameRef}
-                className={'photo' + (photo ? ' has' : '')}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-                data-testid="photo-frame"
-              >
-                {photo && view ? (
-                  <img
-                    src={photo.src}
-                    alt="Passenger photo"
-                    draggable={false}
-                    style={{
-                      width: photo.w,
-                      height: photo.h,
-                      transform: `translate(${view.x}px,${view.y}px) scale(${view.s})`,
-                    }}
-                  />
-                ) : (
-                  'PHOTO'
-                )}
-              </div>
+            <div className="r-to">
+              <small>TO</small>
+              <b>HAMDAN</b>
             </div>
           </div>
-          <div className="col">
-            <div className="grid">
-              <div className="f">
-                <small>DATE</small>
-                <span>29 NOV 2026</span>
-              </div>
-              <div className="f">
-                <small>DAY</small>
-                <span>Sunday</span>
-              </div>
-              <div className="f">
-                <small>BOARDING</small>
-                <span>10:30 AM</span>
-              </div>
-              <div className="f">
-                <small>GATE</small>
-                <span>Hamdan, Abu Dhabi</span>
-              </div>
+          <div className="pair r4">
+            <div className="f f-name">
+              <small>NAME</small>
+              <span>{name.trim() || 'Sector Council Member'}</span>
+            </div>
+            <div className="f">
+              <small>FLIGHT</small>
+              <span>Abu Dhabi City Zone</span>
+            </div>
+          </div>
+          <div className="pair r2">
+            <div className="f">
+              <small>DATE</small>
+              <span>29 NOV 2026</span>
+            </div>
+            <div className="f">
+              <small>DAY</small>
+              <span>Sunday</span>
+            </div>
+          </div>
+          <div className="pair r3">
+            <div className="f">
+              <small>BOARDING</small>
+              <span>10:30 AM</span>
+            </div>
+            <div className="f">
+              <small>GATE</small>
+              <span>Fogg International</span>
             </div>
           </div>
         </div>
         <div className="tear" />
-        <div className="bar" role="img" aria-label={'Barcode: ' + payload} data-testid="barcode">
-          {barcode && (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox={`0 0 ${barcode.total} 1`}
-              preserveAspectRatio="none"
-              shapeRendering="crispEdges"
-            >
-              <rect width={barcode.total} height="1" fill="#fff" />
-              <g fill="#000">
-                {barcode.bars.map(([x, w]) => (
-                  <rect key={x} x={x} y="0" width={w} height="1" />
-                ))}
-              </g>
-            </svg>
-          )}
-        </div>
-        {regId && <div className="idcap">ID {regId}</div>}
         <div className="foot">
-          <div className="slot" aria-hidden="true" />
+          <div className="bcwrap">
+          <div className="bar" role="img" aria-label={'Barcode: ' + payload} data-testid="barcode">
+            {barcode && (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox={`0 0 ${barcode.total} 1`}
+                preserveAspectRatio="none"
+                shapeRendering="crispEdges"
+              >
+                <rect width={barcode.total} height="1" fill="#fff" />
+                <g fill="#000">
+                  {barcode.bars.map(([x, w]) => (
+                    <rect key={x} x={x} y="0" width={w} height="1" />
+                  ))}
+                </g>
+              </svg>
+            )}
+          </div>
+          {regId && <div className="idcap">ID {regId}</div>}
+          </div>
           <div className="rsc-group">
-            <img src={rscLogo} alt="RSC Risala Study Circle" style={{ height: 20 }} />
+            <img src={rscLogo} alt="RSC Risala Study Circle" />
             <span className="city">Abu Dhabi City</span>
           </div>
         </div>
@@ -350,6 +374,7 @@ export default function Register() {
           value={name}
           onChange={onName}
           placeholder="Your name"
+          maxLength={60}
           autoComplete="off"
           list="nm-list"
           disabled={locked}
