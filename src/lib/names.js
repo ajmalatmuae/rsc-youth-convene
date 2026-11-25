@@ -12,6 +12,7 @@ export const DESIGNATIONS = [
   'Organisation Sec',
   'Media Sec',
   'Finance Sec',
+  'Councilor',
 ];
 
 export const NAMES = {
