@@ -35,3 +35,4 @@
 .scan-root li.bad span:first-child::before{content:"\2715  ";color:#ff6b6b}
 .scan-root .msg{margin-top:10px;font-size:.9rem;color:#ffb3b3;min-height:1.2em}
 
+.scan-root .hint{margin-top:8px;font-size:.85rem;opacity:.8;overflow-wrap:anywhere}
