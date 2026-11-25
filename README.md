@@ -11,6 +11,8 @@ Two pages in one app:
 Everything you may need to change is in `src/config.js`:
 - `API_URL`: your Google Apps Script web app address
 - `REG_KEY`: must be identical to `SECRET` in Code.gs
+- `BARCODE_HAS_DETAILS`: `false` (default) puts only the ID in the barcode, which keeps the bars thick and easy to scan.
+  `true` also puts the name and sector in it, but the bars become about 3x thinner and much harder for a phone camera to read.
 
 The staff PIN is NOT in this app. It is `SCAN_PIN` in Code.gs and is typed on the scanner page.
 Name suggestions are in `src/lib/names.js`. Sectors are in the same file.
@@ -41,6 +43,13 @@ so that `/scanner` opens the scanner on each of them). GitHub Pages: the site fo
 3. Push to the `main` branch. The Actions tab shows the build; when it is green the site is live at
    `https://YOUR-USER.github.io/REPO-NAME/` and the staff page at `https://YOUR-USER.github.io/REPO-NAME/scanner`.
 4. Own domain: add a file `public/CNAME` containing just the domain name, then set the same domain under Settings -> Pages.
+
+## Scanning tips (staff)
+- Sound: a short beep when a code is read, two rising beeps for a new check-in, two flat beeps for "already checked in", one low beep for an error.
+  If you hear nothing, tap anywhere on the page once (phones only allow sound after a tap) and check the phone is not on silent.
+- Hold the phone 15 to 25 cm from the barcode, with the screen at full brightness. The line under the camera shows the last code that was read.
+- Phone browsers without a built-in barcode reader (iPhone Safari) load a small scanning library, so they need internet.
+- A scanner gun or typing the ID (`YC-0007` or just `7`) always works.
 
 ## Notes
 - The site must be served over https for the phone camera to work.
