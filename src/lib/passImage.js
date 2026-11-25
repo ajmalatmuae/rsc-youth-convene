@@ -223,7 +223,7 @@ export async function drawPass({ name, sector, regId, payload, photo, view }) {
 
   // barcode: left aligned (like the RSC row), whole device pixels per module, never thinner than 2 device px
   const { bars, total } = code128B(payload);
-  const U = Math.max(2, Math.floor(920 / total));
+  const U = Math.max(2, Math.floor(960 / total));
   const u = U / 2;
   const x0 = 40 - 10 * u; // the 10-module quiet zone sits to the left of x = 40, so the first bar starts at x = 40
   d.fillStyle = '#000';
